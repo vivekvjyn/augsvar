@@ -2,3 +2,6 @@ mirdatasets
 __pycache__
 .ropeproject
 .ipynb_checkpoints
+pitch
+segment
+lib/__pycache__
