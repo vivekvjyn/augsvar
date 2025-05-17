@@ -8,8 +8,8 @@ import math
 
 import numpy as np
 import pandas as pd
-import numpy as np
-from scipy.interpolate import UnivariateSpline, interp1d
+from scipy.interpolate import UnivariateSpline, interp1d, make_interp_spline
+from scipy.signal import argrelextrema, savgol_filter, resample
 
 def get_logger(name):
     logging.basicConfig(format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",)
@@ -655,3 +655,53 @@ def group_contiguous_indices(indices):
 
     grouped.append((start, indices[-1]))  # Add the last range
     return grouped
+
+def shift_change_points(segment, num_shifted=5):
+    """
+    Augments time series by shifting change points in x and y directions.
+
+    :param segment: Time series.
+    :param num_shifted: Number of duplicate time series to generate.
+    :return shifted: List of generated duplicate time series.
+    """
+    shifted = []
+
+    # x axis to spline interpolate
+    x = np.arange(len(segment))
+
+    # Change points
+    local_maxima = argrelextrema(segment, np.greater)[0]
+    local_minima = argrelextrema(segment, np.less)[0]
+
+    change_points = np.concatenate([local_maxima, local_minima])
+    # Also add boundaries
+    change_points = np.unique(np.concatenate([change_points, [0, len(segment) - 1]]))
+    change_points = np.sort(change_points)
+
+    # Add midpoints of changepoints to improve similarity
+    mids = (change_points[1:] + change_points[:-1]) // 2
+    change_points = np.unique(np.concatenate([change_points, mids]))
+    # Do it again
+    mids = (change_points[1:] + change_points[:-1]) // 2
+    change_points = np.unique(np.concatenate([change_points, mids]))
+
+    for i in range(num_shifted):
+        # Shift the change points
+        noise = np.floor(np.random.rand(len(change_points) - 2) * 4 - 2)
+        change_points[1:-1] = change_points.astype(np.float64)[1:-1] + noise
+        change_points = np.unique(change_points)
+
+        # Get shifted magnitudes and add noise
+        change_points_value = np.interp(change_points, x, segment) + np.floor(np.random.rand(len(change_points)) * 5 - 2.5)
+
+        # Interpolate to get smooth curve
+        spline = make_interp_spline(change_points, change_points_value)
+        y = spline(x)
+
+        # Resample and smooth to get different lengths
+        y = resample(y, len(segment) + np.random.randint(len(segment) // 5) - (len(segment) // 10))
+        y = savgol_filter(y, 15, 5)
+
+        shifted.append(y)
+
+    return shifted
