@@ -656,12 +656,13 @@ def group_contiguous_indices(indices):
     grouped.append((start, indices[-1]))  # Add the last range
     return grouped
 
-def shift_change_points(segment, num_shifted=5):
+def shift_change_points(segment, num_shifted=5, strength=4):
     """
     Augments time series by shifting change points in x and y directions.
 
     :param segment: Time series.
     :param num_shifted: Number of duplicate time series to generate.
+    :param strength: Amount of deviation from the original.
     :return shifted: List of generated duplicate time series.
     """
     shifted = []
@@ -687,20 +688,23 @@ def shift_change_points(segment, num_shifted=5):
 
     for i in range(num_shifted):
         # Shift the change points
-        noise = np.floor(np.random.rand(len(change_points) - 2) * 4 - 2)
-        change_points[1:-1] = change_points.astype(np.float64)[1:-1] + noise
-        change_points = np.unique(change_points)
+        noise = np.floor(np.random.rand(len(change_points) - 2) * strength - strength / 2)
+        temp = np.copy(change_points)
+        temp[1:-1] = temp.astype(np.float64)[1:-1] + noise
+        temp = np.unique(temp)
 
         # Get shifted magnitudes and add noise
-        change_points_value = np.interp(change_points, x, segment) + np.floor(np.random.rand(len(change_points)) * 5 - 2.5)
+        change_points_value = np.interp(temp, x, segment) + np.floor(np.random.rand(len(temp)) * strength - strength / 2)
 
         # Interpolate to get smooth curve
-        spline = make_interp_spline(change_points, change_points_value)
+        spline = make_interp_spline(temp, change_points_value)
         y = spline(x)
 
         # Resample and smooth to get different lengths
         y = resample(y, len(segment) + np.random.randint(len(segment) // 5) - (len(segment) // 10))
-        y = savgol_filter(y, 15, 5)
+
+        window_len = 15 if len(y) > 15 else len(y)
+        y = savgol_filter(y, window_len, 5)
 
         shifted.append(y)
 
