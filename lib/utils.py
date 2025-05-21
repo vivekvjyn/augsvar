@@ -686,6 +686,7 @@ def shift_change_points(segment, num_shifted=5, strength=4):
     mids = (change_points[1:] + change_points[:-1]) // 2
     change_points = np.unique(np.concatenate([change_points, mids]))
 
+
     for i in range(num_shifted):
         # Shift the change points
         noise = np.floor(np.random.rand(len(change_points) - 2) * strength - strength / 2)
@@ -701,7 +702,10 @@ def shift_change_points(segment, num_shifted=5, strength=4):
         y = spline(x)
 
         # Resample and smooth to get different lengths
-        y = resample(y, len(segment) + np.random.randint(len(segment) // 5) - (len(segment) // 10))
+        try:
+            y = resample(y, len(segment) + np.random.randint(len(segment) // 5) - (len(segment) // 10))
+        except:
+            continue
 
         window_len = 15 if len(y) > 15 else len(y)
         y = savgol_filter(y, window_len, 5)
