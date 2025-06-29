@@ -1,5 +1,5 @@
 # Svara Time Series Augmentation
-SVARA Time Series Dataset Expansion for Pre-training Large Models: Variable-speed Time Warping and Resizing
+Svara Time Series Dataset Expansion for Pre-training Large Models: Variable-speed Time Warping and Resizing
 
 # Examples
 ![Ex-1](plots/ex1.png)
