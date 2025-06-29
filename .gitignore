@@ -1,10 +1,8 @@
-mirdatasets
-__pycache__
-.ropeproject
 .ipynb_checkpoints
-pitch
-segment
-lib/__pycache__
-tempo
-pair
-melakarta20
+.ropeproject
+__pycache__
+libs/__pycache__
+models/__pycache__
+dataset
+saved_models
+results
