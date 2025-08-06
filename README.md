@@ -1,5 +1,5 @@
 # Svara Time Series Augmentation
-Svara Time Series Dataset Expansion for Pre-training Large Models: Variable-speed Time Warping and Resizing
+Modules for augmenting svara time series by replicating human singing errors without deviating from the svara's ideal form.
 
 # Examples
 ![Ex-1](plots/ex1.png)
